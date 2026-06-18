@@ -1,11 +1,14 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
-const { handleIncomingMessage } = require('../controllers/botController');
+const os = require('os');
+
+// Detectamos si estás en Windows (Local) o Linux (Render)
+const isWindows = os.platform() === 'win32';
 
 const client = new Client({
+    authStrategy: new LocalAuth(), // Mantiene tu sesión guardada
     puppeteer: {
         headless: true,
-        // Si existe la variable en el entorno la usa, si no, deja que Puppeteer busque solo
+        // Si tienes CHROME_PATH en el .env lo usa, si no, lo deja undefined
         executablePath: process.env.CHROME_PATH || undefined, 
         args: [
             '--no-sandbox',
@@ -19,45 +22,17 @@ const client = new Client({
         ]
     }
 });
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
-            '--no-zygote',
-            '--single-process',
-            '--disable-gpu'
-        ]
-    }
-});
 
-client.on('qr', (qr) => {
-    console.log('--- ESCANEA ESTE CÓDIGO QR CON TU WHATSAPP ---');
-    qrcode.generate(qr, { small: true });
-});
-
+// Evento cuando el bot está listo
 client.on('ready', () => {
     console.log('🚀 TommyDevStudio Bot conectado exitosamente a WhatsApp Web.');
 });
 
-client.on('message', async (msg) => {
-    try {
-        await handleIncomingMessage(msg, client);
-    } catch (err) {
-        console.error("Error procesando mensaje entrante: ", err);
-    }
+// Evento para mostrar el código QR
+client.on('qr', (qr) => {
+    // Aquí puedes tener tu librería qrcode-terminal o dashboard
+    console.log('Regenerando Código QR... Escanéalo por favor:');
+    // Si usas qrcode-terminal puedes descomentar su lógica aquí
 });
 
-client.on('message_create', async (msg) => {
-    // Captura también los mensajes enviados desde tu propio teléfono para la auto-pausa
-    if (msg.fromMe) {
-        try {
-            await handleIncomingMessage(msg, client);
-        } catch (err) {
-            console.error("Error procesando mensaje propio: ", err);
-        }
-    }
-});
-
-module.exports = client;
+module.exports = client;       

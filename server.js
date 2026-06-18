@@ -1,11 +1,11 @@
+const dotenv = require('dotenv'); // 1. Importar dotenv
+dotenv.config(); // 2. ¡Cargar las variables INMEDIATAMENTE!
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const dotenv = require('dotenv');
-const whatsappClient = require('./services/whatsapp');
+const whatsappClient = require('./services/whatsapp'); // Ahora sí leerá tu CHROME_PATH
 const apiRoutes = require('./routes/api');
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
