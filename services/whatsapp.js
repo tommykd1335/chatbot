@@ -2,18 +2,11 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const { handleIncomingMessage } = require('../controllers/botController');
 
-const os = require('os');
-
-// Detectamos si el bot está corriendo en Windows o en Linux (Render)
-const isWindows = os.platform() === 'win32';
-
 const client = new Client({
     puppeteer: {
         headless: true,
-        // Si es Windows usa tu ruta local, si es Render (Linux) usa la de Linux o deja que Puppeteer la busque sola
-        executablePath: isWindows 
-            ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' 
-            : '/usr/bin/google-chrome', // Ruta estándar en servidores Linux
+        // Si existe la variable en el entorno la usa, si no, deja que Puppeteer busque solo
+        executablePath: process.env.CHROME_PATH || undefined, 
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -21,7 +14,19 @@ const client = new Client({
             '--disable-accelerated-2d-canvas',
             '--no-first-run',
             '--no-zygote',
-            '--single-process', // Ayuda a que Render no consuma mucha memoria RAM
+            '--single-process',
+            '--disable-gpu'
+        ]
+    }
+});
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
             '--disable-gpu'
         ]
     }
