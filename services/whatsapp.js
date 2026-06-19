@@ -2,33 +2,19 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const os = require('os');
 const qrcode = require('qrcode-terminal');
 const Groq = require('groq-sdk');
-const { execSync } = require('child_process'); // Requerido para buscar Chrome en la nube
 
-// Inicializamos el SDK de Groq usando tu API KEY del .env
+// Inicializamos el SDK de Groq
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // Detectamos si estás en Windows (Local) o Linux (Render)
 const isWindows = os.platform() === 'win32';
 
-// Buscamos la ruta dinámica de Chrome solo si estamos en Render (Linux)
-let renderChromePath = undefined;
-if (!isWindows) {
-    try {
-        // Le pregunta a Puppeteer la ruta exacta de donde instaló Chrome en Render
-        renderChromePath = execSync('npx puppeteer browsers latest path').toString().trim();
-        console.log(`🤖 Navegador Chrome detectado en Render de forma dinámica: ${renderChromePath}`);
-    } catch (e) {
-        console.log('⚠️ No se pudo detectar la ruta dinámica, usando ruta estimada de respaldo...');
-        renderChromePath = '/opt/render/.cache/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome';
-    }
-}
-
 const client = new Client({
-    authStrategy: new LocalAuth(), // Mantiene tu sesión guardada
+    authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
-        // Si está en Windows usa el CHROME_PATH local, si está en Render usa la ruta dinámica de Linux
-        executablePath: isWindows ? (process.env.CHROME_PATH || undefined) : renderChromePath, 
+        // En Windows usa tu ruta local, en Render (Linux) busca su Chrome nativo automáticamente.
+        executablePath: isWindows ? (process.env.CHROME_PATH || undefined) : undefined, 
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -38,7 +24,7 @@ const client = new Client({
     }
 });
 
-// EVENTO DE MENSAJES: Aquí es donde ocurre la magia con la IA
+// EVENTO DE MENSAJES: Conexión e integración con Groq Cloud
 client.on('message', async (msg) => {
     try {
         // Evitamos que el bot procese estados globales de WhatsApp
