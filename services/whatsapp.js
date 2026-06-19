@@ -6,15 +6,18 @@ const Groq = require('groq-sdk');
 // Inicializamos el SDK de Groq
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Detectamos si estás en Windows (Local) o Linux (Render)
+// Detectamos el entorno
 const isWindows = os.platform() === 'win32';
+
+// Definimos la ruta exacta de Chrome para Render (Linux)
+const RENDER_CHROME_PATH = '/opt/render/project/src/.cache/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome';
 
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
-        // En Windows usa tu ruta local, en Render (Linux) busca su Chrome nativo automáticamente.
-        executablePath: isWindows ? (process.env.CHROME_PATH || undefined) : undefined, 
+        // En Windows usa CHROME_PATH, en Render le pasamos la ruta absoluta directa al binario descargado
+        executablePath: isWindows ? (process.env.CHROME_PATH || undefined) : RENDER_CHROME_PATH, 
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -24,6 +27,7 @@ const client = new Client({
     }
 });
 
+// ... El resto de tus eventos (message, ready, qr) se quedan exactamente igual ...
 // EVENTO DE MENSAJES: Conexión e integración con Groq Cloud
 client.on('message', async (msg) => {
     try {
@@ -66,11 +70,17 @@ client.on('ready', () => {
 });
 
 // Evento para mostrar el código QR pintado en la terminal
+// Busca tu evento 'qr' al final del archivo y reemplázalo por este:
 client.on('qr', (qr) => {
     console.log('\n======================================================');
-    console.log('Regenerando Código QR... Escanéalo por favor:');
+    console.log('NUEVO CÓDIGO QR GENERADO (VÁLIDO POR 20 SEGUNDOS):');
     console.log('======================================================\n');
-    qrcode.generate(qr, { small: true }); // Dibuja el QR directamente en la consola
-});
+    
+    // Esto fuerza a la terminal a dibujar con caracteres más compactos y limpios
+    qrcode.generate(qr, { small: true }); 
 
+    // RESPALDO TRUCO: Imprime el código en texto puro por si el dibujo se deforma
+    console.log(`Si el cuadro se ve mal, copia este texto de abajo y pégalo en un generador de QR online:`);
+    console.log(`👉 ${qr}\n`);
+});
 module.exports = client;
