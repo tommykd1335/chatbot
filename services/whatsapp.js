@@ -16,10 +16,10 @@ const RENDER_CHROME_PATH = '/opt/render/project/src/.cache/puppeteer/chrome/linu
 const bootTime = Math.floor(Date.now() / 1000);
 
 const client = new Client({
+    // Deja el LocalAuth pero le inyectamos argumentos a Chrome para que borre el almacenamiento innecesario
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
-        // En Windows usa la variable local, en Render va directo al binario descargado
         executablePath: isWindows ? (process.env.CHROME_PATH || undefined) : RENDER_CHROME_PATH, 
         args: [
             '--no-sandbox',
@@ -28,10 +28,12 @@ const client = new Client({
             '--disable-gpu',
             '--no-first-run',
             '--no-zygote',
-            '--single-process', // Obliga a Chrome a usar un solo proceso para ahorrar RAM
+            '--single-process',          // Todo en un hilo
             '--disable-extensions',
             '--disable-audio-output',
-            '--prerender-from-omnibox=disabled'
+            '--disable-browser-side-navigation',
+            '--disable-features=ScriptStreaming', // Desactiva procesos de lectura de scripts pesados
+            '--js-flags="--max-old-space-size=150"' // 🧠 LE LIMITA LA RAM A NODE/CHROME INTERNO A 150MB MÁXIMO
         ]
     }
 });
