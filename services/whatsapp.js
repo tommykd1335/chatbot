@@ -5,12 +5,16 @@ const Groq = require('groq-sdk'); // Asegúrate de tener instalado groq-sdk
 
 // Inicializamos el SDK de Groq usando tu API KEY del .env
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+// Definimos la ruta de Chrome en Render (Linux)
+const RENDER_CHROME_PATH = '/opt/render/.cache/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome'; 
+// Nota: Si la versión cambia, Puppeteer te la dirá en el log, pero esta es la que te pide tu error actual.
 
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
-        executablePath: process.env.CHROME_PATH || undefined, 
+        // Si está en Windows usa CHROME_PATH local, si está en Render usa la ruta de Linux
+        executablePath: isWindows ? (process.env.CHROME_PATH || undefined) : RENDER_CHROME_PATH, 
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
