@@ -70,17 +70,11 @@ client.on('ready', () => {
 });
 
 // Evento para mostrar el código QR pintado en la terminal
-// Busca tu evento 'qr' al final del archivo y reemplázalo por este:
 client.on('qr', (qr) => {
     console.log('\n======================================================');
-    console.log('NUEVO CÓDIGO QR GENERADO (VÁLIDO POR 20 SEGUNDOS):');
+    console.log('Regenerando Código QR... Escanéalo por favor:');
     console.log('======================================================\n');
-    
-    // Esto fuerza a la terminal a dibujar con caracteres más compactos y limpios
-    qrcode.generate(qr, { small: true }); 
-
-    // RESPALDO TRUCO: Imprime el código en texto puro por si el dibujo se deforma
-    console.log(`Si el cuadro se ve mal, copia este texto de abajo y pégalo en un generador de QR online:`);
-    console.log(`👉 ${qr}\n`);
+    qrcode.generate(qr, { small: true }); // Dibuja el QR directamente en la consola
 });
+
 module.exports = client;
