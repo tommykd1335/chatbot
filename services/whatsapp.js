@@ -1,19 +1,22 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const os = require('os');
 const qrcode = require('qrcode-terminal');
-const Groq = require('groq-sdk'); // Asegúrate de tener instalado groq-sdk
+const Groq = require('groq-sdk');
 
-// Inicializamos el SDK de Groq usando tu API KEY del .env
+// Inicializamos el SDK de Groq
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-// Definimos la ruta de Chrome en Render (Linux)
+
+// 🚀 ✨ ¡AQUÍ ESTÁ LA CORRECCIÓN!: Definir si es Windows o Linux
+const isWindows = os.platform() === 'win32';
+
+// Definimos la ruta de Chrome para Render (Linux)
 const RENDER_CHROME_PATH = '/opt/render/.cache/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome'; 
-// Nota: Si la versión cambia, Puppeteer te la dirá en el log, pero esta es la que te pide tu error actual.
 
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
-        // Si está en Windows usa CHROME_PATH local, si está en Render usa la ruta de Linux
+        // Si está en Windows usa tu CHROME_PATH local, si está en Render usa la ruta de Linux
         executablePath: isWindows ? (process.env.CHROME_PATH || undefined) : RENDER_CHROME_PATH, 
         args: [
             '--no-sandbox',
