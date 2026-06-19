@@ -2,11 +2,12 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const os = require('os');
 const qrcode = require('qrcode-terminal');
 const Groq = require('groq-sdk');
+const path = require('path'); // 1. Importamos path para manejar rutas de Linux
 
 // Inicializamos el SDK de Groq
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Detectamos el entorno (Windows o Linux/Render)
+// Detectamos el entorno
 const isWindows = os.platform() === 'win32';
 
 // Definimos la ruta exacta de Chrome para Render (Linux)
@@ -16,8 +17,11 @@ const RENDER_CHROME_PATH = '/opt/render/project/src/.cache/puppeteer/chrome/linu
 const bootTime = Math.floor(Date.now() / 1000);
 
 const client = new Client({
-    // Deja el LocalAuth pero le inyectamos argumentos a Chrome para que borre el almacenamiento innecesario
-    authStrategy: new LocalAuth(),
+    // 2. OBLIGAMOS a LocalAuth a guardar la sesión en la carpeta /tmp de la nube si es Linux
+    authStrategy: new LocalAuth({
+        clientId: "tommy-bot-session",
+        dataPath: isWindows ? path.join(__dirname, '../.wwebjs_auth') : '/tmp/.wwebjs_auth'
+    }),
     puppeteer: {
         headless: true,
         executablePath: isWindows ? (process.env.CHROME_PATH || undefined) : RENDER_CHROME_PATH, 
@@ -28,12 +32,12 @@ const client = new Client({
             '--disable-gpu',
             '--no-first-run',
             '--no-zygote',
-            '--single-process',          // Todo en un hilo
+            '--single-process',
             '--disable-extensions',
             '--disable-audio-output',
-            '--disable-browser-side-navigation',
-            '--disable-features=ScriptStreaming', // Desactiva procesos de lectura de scripts pesados
-            '--js-flags="--max-old-space-size=150"' // 🧠 LE LIMITA LA RAM A NODE/CHROME INTERNO A 150MB MÁXIMO
+            // 3. Forzamos a Chrome a tirar toda su caché de navegación a /tmp
+            isWindows ? '--disk-cache-dir=./.cache' : '--disk-cache-dir=/tmp/pulse-cache',
+            '--js-flags="--max-old-space-size=150"'
         ]
     }
 });
